@@ -35,23 +35,27 @@ def print_log(msg):
         pass
 
 
-def run_collection(init_mode=False):
+def run_collection(init_mode=False, init_month="202510"):
     """데이터 수집 실행"""
 
     try:
         cmd = [
             "python",
+            "-X",
+            "utf8",
             "-u",
             BIGDATA_PROGRAM,
             "--init",
-            "202510"
+            init_month
         ] if init_mode else [
             "python",
+            "-X",
+            "utf8",
             "-u",
             BIGDATA_PROGRAM
         ]
 
-        mode_text = "초기화 (2025년 10월)" if init_mode else "진행 중인 월"
+        mode_text = f"초기화 ({init_month})" if init_mode else "진행 중인 월"
 
         print_log(f"데이터 수집 시작 - {mode_text}")
         print("\n")
@@ -92,7 +96,7 @@ def run_collection(init_mode=False):
         return False
 
 
-def scheduler():
+def scheduler(init_month="202510"):
     """메인 스케줄러"""
 
     print("공공데이터 포털 나라장터 API 자동 수집 스케줄러")
@@ -112,7 +116,7 @@ def scheduler():
 
             # 첫 실행만 초기화
             init = (count == 1) and is_first
-            success = run_collection(init_mode=init)
+            success = run_collection(init_mode=init, init_month=init_month)
 
             # 다음 실행 시간
             next_time = datetime.fromtimestamp(datetime.now().timestamp() + INTERVAL)
@@ -133,4 +137,5 @@ def scheduler():
 
 
 if __name__ == "__main__":
-    scheduler()
+    init_month = sys.argv[1] if len(sys.argv) > 1 else "202510"
+    scheduler(init_month)
