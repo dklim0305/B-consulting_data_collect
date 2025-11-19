@@ -158,8 +158,8 @@ def get_total_count(start_date, end_date):
 # 데이터 처리
 # ============================================
 
-def save_buffer(items, buffer_path):
-    """버퍼에 데이터 저장 (중복 제거)"""
+def save_buffer(items, buffer_path, current_total, target_total):
+    """버퍼에 데이터 저장 (중복 제거, 초과 방지)"""
     if not items:
         return 0, 0
 
@@ -167,8 +167,15 @@ def save_buffer(items, buffer_path):
     saved_count = 0
     seen = set()
 
+    # 이미 수집한 건 수 + 현재 추가할 건수가 target 초과하지 않도록 제한
+    remaining = target_total - current_total
+
     with open(buffer_path, "a", encoding="utf-8") as f:
         for item in items:
+            
+            # target에 도달하면 주단
+            if saved_count >= remaining:
+                break
             bid_id = item.get('bidNtceNo', '')
             if bid_id and bid_id not in seen:
                 seen.add(bid_id)
@@ -197,7 +204,7 @@ def create_part_file(buffer_path, part_num, prefix, folder):
 
 
 def merge_parts(prefix, folder, target_count):
-    """모든 파트 파일 병합 및 초과분 제거"""
+    """모든 파트 파일 병합"""
     part_files = sorted(glob.glob(os.path.join(folder, f"{prefix}_part*.csv")))
 
     if not part_files:
@@ -209,12 +216,11 @@ def merge_parts(prefix, folder, target_count):
         dataframes.append(df)
 
     merged_df = pd.concat(dataframes, ignore_index=True)
-    merged_df = merged_df.drop_duplicates()
 
-    # 초과분 제거
+    # target_count 만큼만 유지
     if len(merged_df) > target_count:
         log_msg(f"초과분 제거: {len(merged_df)}건 → {target_count}건")
-        merged_df = merged_df.iloc[:target_count]
+        merged_df = merged_df.head(target_count)  # ← iloc 대신 head 사용 (더 명확함)
 
     merged_path = os.path.join(folder, f"{prefix}_merged.csv")
     merged_df.to_csv(merged_path, index=False, encoding='utf-8-sig')
@@ -417,7 +423,7 @@ def main():
                 break
 
             # 데이터 저장
-            req_count, saved_count = save_buffer(items, paths['buffer'])
+            req_count, saved_count = save_buffer(items, paths['buffer'], total_rows, target_rows)
             total_rows += saved_count
             buffer_count += saved_count
 

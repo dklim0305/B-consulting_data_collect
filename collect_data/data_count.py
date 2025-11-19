@@ -4,7 +4,9 @@ import json
 import sys
 
 # API 설정
-API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo'
+API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo' # 1. 데이터셋 개방표준에 따른 입찰공고정보
+# API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo' # 2. 데이터셋 개방표준에 따른 낙찰정보
+# API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo' # 3. 데이터셋 개방표준에 따른 계약정보
 SERVICE_KEY = 'GkdwpZIMCMx6y3h8SR+VRHft47yi6WPAG1ugNGWTsNVfXtdcZriNYv4C/ufr11gzctGilPi8rFm6O03M51qT0w=='
 
 
@@ -23,7 +25,7 @@ def check_data_count(start_date, end_date):
     url = API_URL + '?' + params
 
     try:
-        print(f"\n📊 데이터 개수 확인 중...\n")
+        print(f"\데이터 개수 확인 중")
         print(f"시작: {start_date[:8]} ({start_date[8:]}시)\n종료: {end_date[:8]} ({end_date[8:]}시)\n")
 
         request = req.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -39,7 +41,7 @@ def check_data_count(start_date, end_date):
         result_code = header.get('resultCode')
 
         if result_code not in ('', '00', None):
-            print(f"❌ API 오류: {header.get('resultMsg', 'Unknown error')}")
+            print(f"API 오류: {header.get('resultMsg', 'Unknown error')}")
             return None
 
         # totalCount 추출
@@ -48,22 +50,22 @@ def check_data_count(start_date, end_date):
 
         if total_count is not None:
             total_count = int(total_count)
-            print(f"✅ 기간 내 데이터: {total_count:,}개\n")
+            print(f"기간 내 데이터: {total_count:,}개\n")
 
             # 예상 수집 시간 계산
-            print(f"📈 예상 수집 시간:")
-            print(f"   NUM_OF_ROWS=100  → {total_count // 100}페이지 = 약 {(total_count // 100) * 10 / 60:.1f}분")
-            print(f"   NUM_OF_ROWS=500  → {total_count // 500}페이지 = 약 {(total_count // 500) * 2:.1f}분")
-            print(f"   NUM_OF_ROWS=1000 → {total_count // 1000}페이지 = 약 {(total_count // 1000) * 1:.1f}분\n")
+            print(f" 예상 수집 시간:")
+            print(f"NUM_OF_ROWS=100  → {total_count // 100}페이지 = 약 {(total_count // 100) * 10 / 60:.1f}분")
+            print(f"NUM_OF_ROWS=500  → {total_count // 500}페이지 = 약 {(total_count // 500) * 2:.1f}분")
+            print(f"NUM_OF_ROWS=1000 → {total_count // 1000}페이지 = 약 {(total_count // 1000) * 1:.1f}분\n")
 
             return total_count
         else:
-            print(f"❌ totalCount를 찾을 수 없습니다.")
+            print(f"totalCount를 찾을 수 없습니다.")
             print(f"응답 내용: {json.dumps(body, ensure_ascii=False, indent=2)}")
             return None
 
     except Exception as e:
-        print(f"❌ 오류 발생: {str(e)}")
+        print(f"오류 발생: {str(e)}")
         return None
 
 
