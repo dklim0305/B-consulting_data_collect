@@ -262,13 +262,13 @@ def save_checkpoint(ckpt_path, page, rows, requests, part_num, buffer_count, tot
 def validate_data(merged_count, total_count):
     """데이터 검증 - 수집한 데이터가 API 보고 수량과 일치하는지 확인"""
     if merged_count == total_count:
-        log_msg(f"✓ 데이터 검증 성공: {merged_count:,}건 == {total_count:,}건")
+        log_msg(f"데이터 검증 성공: {merged_count:,}건 == {total_count:,}건")
         return True
     else:
-        log_msg(f"✗ 데이터 검증 실패")
-        log_msg(f"  예상: {total_count:,}건")
-        log_msg(f"  실제: {merged_count:,}건")
-        log_msg(f"  차이: {abs(merged_count - total_count):,}건")
+        log_msg(f"데이터 검증 실패")
+        log_msg(f"예상: {total_count:,}건")
+        log_msg(f"실제: {merged_count:,}건")
+        log_msg(f"차이: {abs(merged_count - total_count):,}건")
         return False
 
 
