@@ -16,7 +16,7 @@ if sys.platform == 'win32':
 BIGDATA_PROGRAM = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\bigdata_api_program_dk.py"
 STATUS_FILE = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\data_set_all\status.json"
 LOG_FILE = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\data_set_all\scheduler_log.txt"
-INTERVAL = 28800  # 8시간
+INTERVAL = 32400  # 9시간
 
 
 # 유틸리티
@@ -101,7 +101,7 @@ def scheduler(init_month="202510"):
 
     print("공공데이터 포털 나라장터 API 자동 수집 스케줄러")
     print(f"시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"주기: 8시간마다")
+    print(f"주기: 9시간마다")
     print(f"로그: {LOG_FILE}\n")
 
     print_log("스케줄러 시작")
@@ -123,7 +123,7 @@ def scheduler(init_month="202510"):
             print_log(f"다음 실행: {next_time.strftime('%Y-%m-%d %H:%M:%S')}")
             print_log("")
 
-            print("8시간 대기 중. (Ctrl+C로 종료)")
+            print("9시간 대기 중. (Ctrl+C로 종료)")
             time.sleep(INTERVAL)
 
     except KeyboardInterrupt:

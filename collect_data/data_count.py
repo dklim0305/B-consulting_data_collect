@@ -5,9 +5,9 @@ import sys
 from datetime import datetime, timedelta
 
 # API 설정
-# API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo' # 1. 데이터셋 개방표준에 따른 입찰공고정보
+API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo' # 1. 데이터셋 개방표준에 따른 입찰공고정보
 # API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdScsbidInfo'   # 2. 데이터셋 개방표준에 따른 낙찰정보
-API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdCntrctInfo'     # 3. 데이터셋 개방표준에 따른 계약정보
+# API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdCntrctInfo'     # 3. 데이터셋 개방표준에 따른 계약정보
 SERVICE_KEY = 'GkdwpZIMCMx6y3h8SR+VRHft47yi6WPAG1ugNGWTsNVfXtdcZriNYv4C/ufr11gzctGilPi8rFm6O03M51qT0w=='
 
 
@@ -24,11 +24,11 @@ def check_data_count(start_date, end_date):
         'numOfRows': 1,  # 1개만 요청 (totalCount만 필요)
         'type': 'json',
         # 'bsnsDivCd': 5,             # 2. 데이터셋 개방표준에 따른 낙찰정보에서만 사용
-        # 'bidNtceBgnDt': start_date, # 1. 데이터셋 개방표준에 따른 입찰공고정보에서만 사용
-        # 'bidNtceEndDt': end_date,
+        'bidNtceBgnDt': start_date, # 1. 데이터셋 개방표준에 따른 입찰공고정보에서만 사용
+        'bidNtceEndDt': end_date,
         # 'opengBgnDt': start_date,   # 2. 데이터셋 개방표준에 따른 낙찰정보에서만 사용
         # 'opengEndDt': end_date,
-        'cntrctCnclsBgnDate': s,      # 3. 데이터셋 개방표준에 따른 계약정보는 YYYYMMDD
+        # 'cntrctCnclsBgnDate': s,      # 3. 데이터셋 개방표준에 따른 계약정보는 YYYYMMDD
         'cntrctCnclsEndDate': e
     })
 

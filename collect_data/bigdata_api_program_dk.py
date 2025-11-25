@@ -9,10 +9,8 @@ import sys
 from datetime import datetime
 import calendar
 
-# ============================================
-# 설정
-# ============================================
 
+# 설정
 API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo'
 SERVICE_KEY = 'GkdwpZIMCMx6y3h8SR+VRHft47yi6WPAG1ugNGWTsNVfXtdcZriNYv4C/ufr11gzctGilPi8rFm6O03M51qT0w=='
 
@@ -23,11 +21,7 @@ REQUEST_INTERVAL = 1.0 / TPS_LIMIT + 0.01
 DAILY_LIMIT = 10000
 BATCH_SIZE = 5000
 
-
-# ============================================
 # 기본 함수
-# ============================================
-
 def log_msg(msg):
     """로그 출력"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -51,10 +45,7 @@ def format_date(year, month, day, time_part="0000"):
     return f"{year:04d}{month:02d}{day:02d}{time_part}"
 
 
-# ============================================
 # 폴더/경로 관리
-# ============================================
-
 def get_folder_path(year, month):
     """월별 폴더 경로"""
     folder_name = f"public_procurement_{year:04d}{month:02d}"
@@ -84,11 +75,7 @@ def get_file_paths(year, month):
         'log': os.path.join(folder, "execution_log.txt"),
     }
 
-
-# ============================================
 # 상태 관리
-# ============================================
-
 def load_status():
     """상태 파일 읽기"""
     status_file = os.path.join(BASE_DIR, "status.json")
@@ -115,10 +102,7 @@ def save_status(year, month):
         json.dump(status, f, ensure_ascii=False, indent=2)
 
 
-# ============================================
 # API 통신
-# ============================================
-
 def fetch_page(page_num, num_of_rows, start_date, end_date):
     """API에서 한 페이지 데이터 받기"""
     params = urlencode({
@@ -154,26 +138,22 @@ def get_total_count(start_date, end_date):
     return int(total_count)
 
 
-# ============================================
 # 데이터 처리
-# ============================================
-
-def save_buffer(items, buffer_path, current_total, target_total):
-    """버퍼에 데이터 저장 (중복 제거, 초과 방지)"""
+def save_buffer(items, buffer_path, current_total, target_total, seen):
+    """버퍼에 데이터 저장 (페이지 간 중복 제거, 초과 방지)"""
     if not items:
         return 0, 0
 
     request_count = len(items)
     saved_count = 0
-    seen = set()
 
-    # 이미 수집한 건 수 + 현재 추가할 건수가 target 초과하지 않도록 제한
+    # 이미 수집한 건수 + 현재 추가할 건수가 target을 초과하지 않도록 제한
     remaining = target_total - current_total
 
     with open(buffer_path, "a", encoding="utf-8") as f:
         for item in items:
-            
-            # target에 도달하면 주단
+
+            # target에 도달하면 중단
             if saved_count >= remaining:
                 break
             bid_id = item.get('bidNtceNo', '')
@@ -204,7 +184,7 @@ def create_part_file(buffer_path, part_num, prefix, folder):
 
 
 def merge_parts(prefix, folder, target_count):
-    """모든 파트 파일 병합"""
+    """모든 파트 파일 병합 (중복 제거 없음)"""
     part_files = sorted(glob.glob(os.path.join(folder, f"{prefix}_part*.csv")))
 
     if not part_files:
@@ -217,22 +197,13 @@ def merge_parts(prefix, folder, target_count):
 
     merged_df = pd.concat(dataframes, ignore_index=True)
 
-    # target_count 만큼만 유지
-    if len(merged_df) > target_count:
-        log_msg(f"초과분 제거: {len(merged_df)}건 → {target_count}건")
-        merged_df = merged_df.head(target_count)  # ← iloc 대신 head 사용 (더 명확함)
-
     merged_path = os.path.join(folder, f"{prefix}_merged.csv")
     merged_df.to_csv(merged_path, index=False, encoding='utf-8-sig')
 
     log_msg(f"최종 병합: {os.path.basename(merged_path)} ({len(merged_df)}행)")
     return len(merged_df)
 
-
-# ============================================
 # 체크포인트 관리
-# ============================================
-
 def load_checkpoint(ckpt_path):
     """체크포인트 읽기"""
     if os.path.exists(ckpt_path):
@@ -272,10 +243,8 @@ def validate_data(merged_count, total_count):
         return False
 
 
-# ============================================
-# 로깅
-# ============================================
 
+# 로깅
 def write_summary(summary_path, merged_count, total_count, elapsed_sec, error_reason,
                   is_success, request_count, current_page):
     """요약 파일 작성"""
@@ -333,10 +302,7 @@ def write_execution_log(log_path, year, month, status, elapsed_sec, merged_count
         f.write(text)
 
 
-# ============================================
 # 메인 로직
-# ============================================
-
 def main():
     """메인 프로그램"""
 
@@ -375,6 +341,7 @@ def main():
     log_msg(f"전체 데이터: {total_count:,}건")
 
     # 4. 체크포인트 확인
+    seen_this_month = set()
     checkpoint = load_checkpoint(paths['checkpoint'])
     if checkpoint:
         current_page = checkpoint['next_page']
@@ -423,7 +390,14 @@ def main():
                 break
 
             # 데이터 저장
-            req_count, saved_count = save_buffer(items, paths['buffer'], total_rows, target_rows)
+            req_count, saved_count = save_buffer(items, paths['buffer'], total_rows, target_rows, seen_this_month)
+
+            if saved_count == 0 and total_rows < target_rows:
+                log_msg(f"경고: 수집 불가 상태 (API 응답 없음)")
+                log_msg(f"수집됨: {total_rows:,}건 / 목표: {target_rows:,}건")
+                error_reason = "API 응답 한계"
+                break
+
             total_rows += saved_count
             buffer_count += saved_count
 
@@ -432,8 +406,8 @@ def main():
             remaining = target_rows - total_rows
 
             log_msg(f"Page {current_page:5d} [요청 {request_count:5d}/{DAILY_LIMIT}] | "
-                   f"데이터 {data_start_num:,d}~{data_end_num:,d} | "
-                   f"누적: {total_rows:,d}/{target_rows:,d}건 | 남은: {remaining:,d}건")
+                    f"데이터 {data_start_num:,d}~{data_end_num:,d} | "
+                    f"누적: {total_rows:,d}/{target_rows:,d}건 | 남은: {remaining:,d}건")
 
             data_start_num = data_end_num + 1
 
@@ -445,7 +419,7 @@ def main():
 
             # 체크포인트 저장
             save_checkpoint(paths['checkpoint'], current_page + 1, total_rows, request_count,
-                          part_num, buffer_count, total_count)
+                            part_num, buffer_count, total_count)
 
             current_page += 1
 
@@ -469,9 +443,9 @@ def main():
     status_msg = "완료" if is_success else "중단"
 
     write_summary(paths['summary'], merged_count, total_count, elapsed, error_reason or "정상",
-                 is_success, request_count, current_page)
+                  is_success, request_count, current_page)
     write_execution_log(paths['log'], year, month, status_msg, elapsed, merged_count,
-                       total_count, error_reason or "정상")
+                        total_count, error_reason or "정상")
 
     log_msg(f"{status_msg} - {int(elapsed)}초")
 
