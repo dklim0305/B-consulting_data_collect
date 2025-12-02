@@ -13,7 +13,7 @@ if sys.platform == 'win32':
 
 # 설정
 
-BIGDATA_PROGRAM = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\bigdata_api_program_dk.py"
+BIGDATA_PROGRAM = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\bigdata_api_program_bid_pbanc_list_dk.py"
 STATUS_FILE = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\data_set_all\status.json"
 LOG_FILE = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\data_set_all\scheduler_log.txt"
 INTERVAL = 32400  # 9시간

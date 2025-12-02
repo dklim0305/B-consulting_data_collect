@@ -29,7 +29,7 @@ def check_data_count(start_date, end_date):
         # 'opengBgnDt': start_date,   # 2. 데이터셋 개방표준에 따른 낙찰정보에서만 사용
         # 'opengEndDt': end_date,
         # 'cntrctCnclsBgnDate': s,      # 3. 데이터셋 개방표준에 따른 계약정보는 YYYYMMDD
-        'cntrctCnclsEndDate': e
+        # 'cntrctCnclsEndDate': e
     })
 
     url = API_URL + '?' + params

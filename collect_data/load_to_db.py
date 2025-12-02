@@ -139,7 +139,6 @@ def process_month(year, month):
 
     return True
 
-
 def main():
     """메인 프로그램"""
 
