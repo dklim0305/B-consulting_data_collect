@@ -12,6 +12,7 @@ import calendar
 
 # 설정
 API_URL = 'https://apis.data.go.kr/1230000/ao/PubDataOpnStdService/getDataSetOpnStdBidPblancInfo'
+
 SERVICE_KEY = 'GkdwpZIMCMx6y3h8SR+VRHft47yi6WPAG1ugNGWTsNVfXtdcZriNYv4C/ufr11gzctGilPi8rFm6O03M51qT0w=='
 
 BASE_DIR = r"C:\Users\admin\PycharmProjects\PythonProject\collect_data\data_set_all"
@@ -139,30 +140,28 @@ def get_total_count(start_date, end_date):
 
 
 # 데이터 처리
-def save_buffer(items, buffer_path, current_total, target_total, seen):
-    """버퍼에 데이터 저장 (페이지 간 중복 제거, 초과 방지)"""
+def save_buffer(items, buffer_path, current_total, target_total, seen=None):
+    """버퍼에 데이터 저장 (중복 제거 없이, target 초과만 방지)"""
     if not items:
         return 0, 0
 
     request_count = len(items)
     saved_count = 0
 
-    # 이미 수집한 건수 + 현재 추가할 건수가 target을 초과하지 않도록 제한
+    # target 초과 방지
     remaining = target_total - current_total
 
     with open(buffer_path, "a", encoding="utf-8") as f:
         for item in items:
-
-            # target에 도달하면 중단
             if saved_count >= remaining:
                 break
-            bid_id = item.get('bidNtceNo', '')
-            if bid_id and bid_id not in seen:
-                seen.add(bid_id)
-                f.write(json.dumps(item, ensure_ascii=False) + "\n")
-                saved_count += 1
+
+            # 중복 체크 없이 그대로 저장
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
+            saved_count += 1
 
     return request_count, saved_count
+
 
 
 def create_part_file(buffer_path, part_num, prefix, folder):
@@ -341,7 +340,6 @@ def main():
     log_msg(f"전체 데이터: {total_count:,}건")
 
     # 4. 체크포인트 확인
-    seen_this_month = set()
     checkpoint = load_checkpoint(paths['checkpoint'])
     if checkpoint:
         current_page = checkpoint['next_page']
@@ -390,7 +388,7 @@ def main():
                 break
 
             # 데이터 저장
-            req_count, saved_count = save_buffer(items, paths['buffer'], total_rows, target_rows, seen_this_month)
+            req_count, saved_count = save_buffer(items, paths['buffer'], total_rows, target_rows)
 
             if saved_count == 0 and total_rows < target_rows:
                 log_msg(f"경고: 수집 불가 상태 (API 응답 없음)")
