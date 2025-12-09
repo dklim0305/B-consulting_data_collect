@@ -1,0 +1,42 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# -----------------------------
+# Java (IntelliJ, Maven, Gradle)
+# -----------------------------
+
+# IntelliJ
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Logs
+*.log
+
+# -----------------------------
+# OS / 에디터 자동 생성 파일
+# -----------------------------
+.DS_Store
+Thumbs.db
